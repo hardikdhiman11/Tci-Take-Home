@@ -39,8 +39,12 @@ public class EmployeeBonusServiceImpl implements EmployeeService {
 
     @Override
     public boolean saveEmployeeList(List<EmployeeRequest> dtoRequests) {
+        //Step1: Convert the list of dto request to stream.
+        //Step2: Map the dto request to employee object and save department and employee
+        //       in their respective tables.
+        //Step2: Save all employees.
         try {
-            var employees = dtoRequests.stream()
+            List<Employee> employees = dtoRequests.stream()
                     .map(dto -> convertRequestToEmployee(dto))
                     .collect(Collectors.toList());
             employeeRepo.saveAll(employees);
@@ -52,6 +56,10 @@ public class EmployeeBonusServiceImpl implements EmployeeService {
 
 
     private Employee convertRequestToEmployee(EmployeeRequest request){
+        //Step1: Check if department already exists by name in repository.
+        //Step2: If department is present save the employee with id of existing department in the table
+        //       or create a new department and save the id of that department in the employee table.
+        //Step3: Save employee with its department
         Optional<Department> departmentOptional = departmentRepo.findByDepartmentName(request.getDepartment());
         Department department;
         if (departmentOptional.isPresent()){
