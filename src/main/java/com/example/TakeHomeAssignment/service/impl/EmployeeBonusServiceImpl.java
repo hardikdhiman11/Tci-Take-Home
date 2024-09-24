@@ -69,8 +69,11 @@ public class EmployeeBonusServiceImpl implements EmployeeService {
                 .amount(request.getAmount())
                 .currency(request.getCurrency())
                 .joiningDate( LocalDate.parse(request.getJoiningDate(),DATE_FORMATTER) )
-                .exitDate( LocalDate.parse(request.getExitDate(),DATE_FORMATTER) )
                 .build();
+
+        Optional<String> exitDate =  Optional.ofNullable(request.getExitDate());
+        exitDate.ifPresentOrElse(date ->employee.setExitDate( LocalDate.parse(date,DATE_FORMATTER)),
+                ()->employee.setExitDate(null));
         return employee;
     }
 
