@@ -7,6 +7,7 @@ import com.example.TakeHomeAssignment.utils.MessageUtils;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Valid;
 import jakarta.validation.Validator;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -27,8 +28,6 @@ public class EmployeeBonusController {
 
     @PostMapping("/employee-bonus")
     public ResponseEntity<String> saveEmployeeBonusData(@Valid @RequestBody EmployeeListRequest request){
-        Set<ConstraintViolation<EmployeeListRequest>> violations = validator.validate(request);
-        violations.forEach(System.out::println);
 
         if (request.getEmployees().isEmpty()) {
             return ResponseEntity.status(HttpStatusCode.valueOf(400))
@@ -44,7 +43,10 @@ public class EmployeeBonusController {
 
 
     @GetMapping("//employee-bonus")
-    public ResponseEntity<GetEmployeeResponse> getGroupedEmployees(@RequestParam("date") String date){
+    public ResponseEntity<GetEmployeeResponse> getGroupedEmployees(@RequestParam("date")
+                                                                       @Pattern(regexp = "^\"(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-([0-2][0-9]|3[01])-(19|20)\\d{2}\"$",
+                                                                               message = "Joining date format is not valid")
+                                                               String date){
         return ResponseEntity.ok().body(employeeService.getEmployeeBonusByDate(date));
     }
 
