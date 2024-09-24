@@ -16,22 +16,19 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 @Transactional
-public class EmployeeBonusServiceImpl implements EmployeeService {
+public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepo employeeRepo;
     private final DepartmentRepo departmentRepo;
 
-    private static final DateTimeFormatter DATE_FORMATTER = new DateTimeFormatterBuilder()
+    public static final DateTimeFormatter DATE_FORMATTER = new DateTimeFormatterBuilder()
             .parseCaseInsensitive()
             .appendPattern("MMM-dd-yyyy")
             .toFormatter(Locale.ENGLISH);;
@@ -55,7 +52,7 @@ public class EmployeeBonusServiceImpl implements EmployeeService {
     }
 
 
-    private Employee convertRequestToEmployee(EmployeeRequest request){
+    Employee convertRequestToEmployee(EmployeeRequest request){
         //Step1: Check if department already exists by name in repository.
         //Step2: If department is present save the employee with id of existing department in the table
         //       or create a new department and save the id of that department in the employee table.
@@ -91,7 +88,8 @@ public class EmployeeBonusServiceImpl implements EmployeeService {
         //Step1: Get eligible employees list using jpql query.
         //Step2: Group employees by currency and then map the employee to the EmployeeBonusResponse class and
         //downstream it to be collected into a list.
-        //Step3: Then return the desired response Wrapper object
+        //Step3: Sort the employees by their names.
+        //Step4: Then return the desired response Wrapper object
         String trimmedDate = date.replace("\"","");
         LocalDate localDate = LocalDate.parse(trimmedDate,DATE_FORMATTER);
         log.info("Local Date {}",trimmedDate);
@@ -106,9 +104,18 @@ public class EmployeeBonusServiceImpl implements EmployeeService {
                                     .build();
                             return response;
                         },Collectors.toList() )));
+
+        Map<String,List<EmployeeBonusResponse>> groupedAndSorted = groupedEmployees.entrySet().stream()
+           .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> e.getValue().stream()
+                                .sorted(Comparator.comparing(EmployeeBonusResponse::getEmpName))
+                                .collect(Collectors.toList())
+                ));
+
         GetEmployeeResponse response = GetEmployeeResponse.builder()
                 .errorMessage("")
-                .data(groupedEmployees)
+                .data(groupedAndSorted)
                 .build();
         return response;
     }

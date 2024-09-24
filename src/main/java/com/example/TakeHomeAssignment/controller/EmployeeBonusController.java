@@ -46,7 +46,7 @@ public class EmployeeBonusController {
     public ResponseEntity<GetEmployeeResponse> getGroupedEmployees(@RequestParam("date")
                                                                        @Pattern(regexp = "^\"(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-([0-2][0-9]|3[01])-(19|20)\\d{2}\"$",
                                                                                message = "Joining date format is not valid")
-                                                               String date){
+                                                                    String date){
         return ResponseEntity.ok().body(employeeService.getEmployeeBonusByDate(date));
     }
 
