@@ -1,0 +1,49 @@
+package com.example.TakeHomeAssignment.dto.request;
+
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Positive;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class EmployeeRequest {
+    @NotBlank(message = "Employee name should not be blank")
+    private String empName;
+
+    //Using a regex for 3 department names because only they are provided in the assignment.
+    @NotBlank(message = "Department should not be blank")
+    @Pattern(regexp = "\b(IT|accounts|Operations)\b"
+            ,message = "Only valid department names are:IT,accounts,Operations")
+    private String department;
+
+    @NotNull(message = "Amount should not be blank")
+    @Positive(message = "Amount must be positive")
+    private Integer amount;
+
+    // Using a regex for INR and USD as provided in the assignment.
+    @NotBlank(message = "Currency can`t be blank")
+    @Pattern(regexp = "\b(INR|USD)\b",
+            message = "Currency code should be either INR or USD")
+    private String currency;
+
+
+    @NotBlank(message = "Joining date can`t be blank")
+    @Pattern(regexp = "^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-([0-2][0-9]|3[01])-(19|20)\\d{2}$\n",
+            message = "Joining date format is not valid")
+    private String joiningDate;
+
+    @Pattern(regexp = "^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-([0-2][0-9]|3[01])-(19|20)\\d{2}$\n",
+            message = "Exit date format is not valid")
+    private String exitDate;
+}
