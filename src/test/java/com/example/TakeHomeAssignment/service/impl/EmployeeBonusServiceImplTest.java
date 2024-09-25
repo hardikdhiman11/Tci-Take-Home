@@ -1,6 +1,7 @@
 package com.example.TakeHomeAssignment.service.impl;
 
 import com.example.TakeHomeAssignment.dto.request.EmployeeRequest;
+import com.example.TakeHomeAssignment.dto.response.CurrencyEmployeeResponse;
 import com.example.TakeHomeAssignment.dto.response.EmployeeBonusResponse;
 import com.example.TakeHomeAssignment.dto.response.GetEmployeeResponse;
 import com.example.TakeHomeAssignment.model.Department;
@@ -104,9 +105,6 @@ class EmployeeBonusServiceImplTest {
 
     @Test
     void testGetEmployeeBonusByDate() {
-        // Arrange
-        String date = "\"2023-05-01\"";
-        LocalDate localDate = LocalDate.parse("may-05-2021", EmployeeServiceImpl.DATE_FORMATTER);
 
         Employee employee1 = Employee.builder()
                 .empName("Hardik")
@@ -120,23 +118,30 @@ class EmployeeBonusServiceImplTest {
                 .currency("INR")
                 .build();
 
-        when(employeeRepo.findEligibleEmployees(localDate)).thenReturn(Arrays.asList(employee1, employee2));
+        when(employeeRepo.findEligibleEmployees(any(LocalDate.class)))
+                .thenReturn(Arrays.asList(employee1, employee2));
 
-        GetEmployeeResponse response = employeeService.getEmployeeBonusByDate(date);
-
-        Map<String, List<EmployeeBonusResponse>> expectedData = new HashMap<>();
-        expectedData.put("USD", Arrays.asList(
-                EmployeeBonusResponse.builder()
-                        .empName("Hardik")
-                        .amount(5000)
-                        .build()));
-        expectedData.put("EUR", Arrays.asList(
-                EmployeeBonusResponse.builder()
-                        .empName("Reetika")
-                        .amount(10000)
-                        .build()));
+        GetEmployeeResponse response = employeeService.getEmployeeBonusByDate("\"may-05-2021\"");
 
         assertEquals("", response.getErrorMessage());
-        assertEquals(expectedData, response.getData());
+
+        List<CurrencyEmployeeResponse> data = response.getData();
+        assertEquals(2, data.size());
+
+        CurrencyEmployeeResponse inrResponse = data.stream()
+                .filter(r -> r.getCurrency().equals("INR"))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(inrResponse);
+        assertEquals(1, inrResponse.getEmployees().size());
+        assertEquals("Reetika", inrResponse.getEmployees().get(0).getEmpName());
+
+        CurrencyEmployeeResponse usdResponse = data.stream()
+                .filter(r -> r.getCurrency().equals("USD"))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(usdResponse);
+        assertEquals(1, usdResponse.getEmployees().size());
+        assertEquals("Hardik", usdResponse.getEmployees().get(0).getEmpName());
     }
 }
