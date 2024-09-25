@@ -23,6 +23,12 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<Map<String,Object>> handleException(Exception e) {
+        return ResponseEntity.badRequest().body(Map.of("errorResponse","Internal Server Error"));
+    }
+
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Map<String,Object>> handleConstraintViolationException(ConstraintViolationException ex) {
@@ -32,7 +38,7 @@ public class GlobalExceptionHandler {
             errors.add(violation.getPropertyPath() + ": " + violation.getMessage());
         }
 
-        return ResponseEntity.badRequest().body(Map.of("error",errors));
+        return ResponseEntity.badRequest().body(Map.of("errorResponse",errors));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -41,21 +47,21 @@ public class GlobalExceptionHandler {
         ex.getAllErrors()
         .forEach(err -> errors.add(err.getDefaultMessage()));
 
-        return new ResponseEntity<>(Map.of("errors",errors), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(Map.of("errorResponse",errors), HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Map<String,Object>> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
         return ResponseEntity
                 .badRequest()
-                .body(Map.of("error","Malformed JSON request or incorrect field types"));
+                .body(Map.of("errorResponse","Malformed JSON request or incorrect field types"));
     }
     @ExceptionHandler(JsonParseException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Map<String,Object>> handleJsonParseException(JsonParseException ex) {
         return ResponseEntity
                 .badRequest()
-                .body(Map.of("error","Invalid JSON format: " + ex.getOriginalMessage()));
+                .body(Map.of("errorResponse","Invalid JSON format: " + ex.getOriginalMessage()));
     }
 
     @ExceptionHandler(JsonMappingException.class)
@@ -63,7 +69,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String,Object>> handleJsonMappingException(JsonMappingException ex) {
         return ResponseEntity
                 .badRequest()
-                .body(Map.of("error","JSON mapping error: " + ex.getOriginalMessage()));
+                .body(Map.of("errorResponse","JSON mapping error: " + ex.getOriginalMessage()));
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
@@ -71,14 +77,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String,Object>> handleMissingServletRequestParameter(MissingServletRequestParameterException ex) {
         return ResponseEntity
                 .badRequest()
-                .body(Map.of("error","Missing required parameter: " + ex.getParameterName()));
+                .body(Map.of("errorResponse","Missing required parameter: " + ex.getParameterName()));
     }
     @ExceptionHandler(HttpMessageConversionException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Map<String,Object>> handleHttpMessageConversionException(HttpMessageConversionException ex) {
         return ResponseEntity
                 .badRequest()
-                .body(Map.of("error","Message conversion error: " + ex.getLocalizedMessage()));
+                .body(Map.of("errorResponse","Message conversion error: " + ex.getLocalizedMessage()));
     }
 
     @ExceptionHandler(TypeMismatchException.class)
@@ -86,14 +92,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String,Object>> handleTypeMismatch(TypeMismatchException ex) {
         return ResponseEntity
                 .badRequest()
-                .body(Map.of("error","Type mismatch: " + ex.getMessage()));
+                .body(Map.of("errorResponse","Type mismatch: " + ex.getMessage()));
     }
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     @ResponseStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
     public ResponseEntity<Map<String,Object>> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex) {
         return ResponseEntity
                 .status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-                .body(Map.of("error","Unsupported media type: " + ex.getContentType()));
+                .body(Map.of("errorResponse","Unsupported media type: " + ex.getContentType()));
     }
 
 }

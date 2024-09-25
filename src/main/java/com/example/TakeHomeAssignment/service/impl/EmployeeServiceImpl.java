@@ -1,6 +1,7 @@
 package com.example.TakeHomeAssignment.service.impl;
 
 import com.example.TakeHomeAssignment.dto.request.EmployeeRequest;
+import com.example.TakeHomeAssignment.dto.response.CurrencyEmployeeResponse;
 import com.example.TakeHomeAssignment.dto.response.EmployeeBonusResponse;
 import com.example.TakeHomeAssignment.dto.response.GetEmployeeResponse;
 import com.example.TakeHomeAssignment.model.Department;
@@ -87,35 +88,48 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         //Step1: Get eligible employees list using jpql query.
         //Step2: Group employees by currency and then map the employee to the EmployeeBonusResponse class and
-        //downstream it to be collected into a list.
-        //Step3: Sort the employees by their names.
-        //Step4: Then return the desired response Wrapper object
+        //      downstream it into a list and sort them side by side with EmployeeName.
+        //Step3: Create a stream on the map and then use the Wrapper object which in my case
+        //        is Currency Employee Response to return the desired response.
+        //Step4: Use another wrapper class and return the result.
         String trimmedDate = date.replace("\"","");
         LocalDate localDate = LocalDate.parse(trimmedDate,DATE_FORMATTER);
-        log.info("Local Date {}",trimmedDate);
-        log.info("List of employees {}",employeeRepo.findEligibleEmployees(localDate));
-        Map<String,List<EmployeeBonusResponse>> groupedEmployees = employeeRepo.findEligibleEmployees(localDate)
-                .stream()
-                .collect(Collectors.groupingBy( Employee::getCurrency ,
-                        Collectors.mapping( emp-> {
-                            EmployeeBonusResponse response = EmployeeBonusResponse.builder()
-                                    .empName(emp.getEmpName())
-                                    .amount(emp.getAmount())
-                                    .build();
-                            return response;
-                        },Collectors.toList() )));
 
-        Map<String,List<EmployeeBonusResponse>> groupedAndSorted = groupedEmployees.entrySet().stream()
-           .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        e -> e.getValue().stream()
-                                .sorted(Comparator.comparing(EmployeeBonusResponse::getEmpName))
-                                .collect(Collectors.toList())
-                ));
+        List<Employee> eligibleEmployees = employeeRepo.findEligibleEmployees(localDate);
+
+        List<CurrencyEmployeeResponse> currencyEmployeeResponses =  eligibleEmployees.stream()
+                .collect(Collectors.groupingBy(
+                        Employee::getCurrency,
+                        Collectors.mapping(
+                                emp -> {
+                                    EmployeeBonusResponse bonusResponse = EmployeeBonusResponse.builder()
+                                            .empName(emp.getEmpName())
+                                            .amount(emp.getAmount())
+                                            .build();
+                                    return bonusResponse;
+                                },
+                                Collectors.collectingAndThen(
+                                        Collectors.toList(),
+                                        list -> list.stream()
+                                                .sorted(Comparator.comparing(EmployeeBonusResponse::getEmpName))
+                                                .collect( Collectors.toList() )
+                                )
+                        )
+                ))
+                .entrySet().stream()
+                .map(entry -> {
+                    CurrencyEmployeeResponse currencyEmployeesResponse = CurrencyEmployeeResponse.builder()
+                            .currency(entry.getKey())
+                            .employees(entry.getValue())
+                            .build();;
+                    return currencyEmployeesResponse;
+                })
+                .sorted(Comparator.comparing(CurrencyEmployeeResponse::getCurrency))
+                .collect(Collectors.toList());
 
         GetEmployeeResponse response = GetEmployeeResponse.builder()
                 .errorMessage("")
-                .data(groupedAndSorted)
+                .data(currencyEmployeeResponses)
                 .build();
         return response;
     }

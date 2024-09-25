@@ -4,7 +4,6 @@ import com.example.TakeHomeAssignment.dto.request.EmployeeListRequest;
 import com.example.TakeHomeAssignment.dto.response.GetEmployeeResponse;
 import com.example.TakeHomeAssignment.service.EmployeeService;
 import com.example.TakeHomeAssignment.utils.MessageUtils;
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Valid;
 import jakarta.validation.Validator;
 import jakarta.validation.constraints.Pattern;
